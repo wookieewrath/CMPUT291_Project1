@@ -11,9 +11,7 @@ Pro-Tip#2:
 
 Since we are often returning tuples with multiple values, when executing an SQL query, remember to include an additional comma at the end. I wasted so much time trying to figure out what was wrong. example (note the comma after regno):
 
-cursor.execute("UPDATE registrations "
-                       "SET expiry=? "
-                       "WHERE regno=?", (next_year, regno,))
+cursor.execute("UPDATE registrations SET expiry=? WHERE regno=?", (next_year, regno,))
                        
                        
                       
