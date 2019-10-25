@@ -8,6 +8,7 @@ import get_new_persons
 import get_process_sale
 import get_registration_renewal
 import get_ticket_payment_info
+import get_issue_ticket
 
 """
 
@@ -98,6 +99,8 @@ def reg_marriage(cursor):
     cursor.execute("INSERT INTO marriages VALUES (?,?,?,?,?,?,?)",
                    (new_regno, today, marriage_input[1], person1[0], person1[1], person2[0], person2[1],))
 
+    print("Congratulations!!! " + person1[0] + " and " + person1[0] + " are now a happily married couple.")
+
 
 '''******************************Looks completed, testing required******************************'''
 def renew_registration(cursor):
@@ -123,6 +126,8 @@ def renew_registration(cursor):
         cursor.execute("UPDATE registrations "
                        "SET expiry=? "
                        "WHERE regno=?", (next_year, regno,))
+
+    print("The registration has been renewed")
 
 
 '''******************************Looks completed, testing required******************************'''
@@ -171,6 +176,7 @@ def bill_of_sale(cursor):
         cursor.execute("INSERT INTO registrations VALUES (?,?,?,?,?,?,?)",
                        (new_regno, today, next_year, info_tuple[5], registration_info[4], new_owner_info[0],
                         new_owner_info[1],))
+        print("A new registration has been created")
 
 
 '''******************************Looks completed, testing required******************************'''
@@ -212,6 +218,43 @@ def process_payment(cursor):
         print("Invalid Payment")
 
 
+'''******************************Looks completed, testing required******************************'''
+def issue_ticket(cursor):
+    regno_input = get_issue_ticket.get_registration()
+    cursor.execute("SELECT * "
+                   "FROM registrations "
+                   "WHERE regno=?;", (regno_input,))
+    reg_info = cursor.fetchone()
+
+    if reg_info is not None:
+        cursor.execute("SELECT * "
+                       "FROM vehicles "
+                       "WHERE vin=?;", (reg_info[4],))
+        vehicle_info = cursor.fetchone()
+
+        print(reg_info[5] + " " + reg_info[6] + " drives a: " + vehicle_info[4] + " " + str(vehicle_info[3]) + " " + vehicle_info[1] + " " + vehicle_info[2])
+
+        give_ticket = input("Would you like to give " + reg_info[5] + " " + reg_info[6] + " a ticket? (Y/N): ")
+
+        if give_ticket.lower() == "y":
+            cursor.execute("SELECT tno FROM tickets;")
+            list_of_tno = [row[0] for row in (cursor.fetchall())]
+            while True:
+                new_tno = random.randint(100, 999)
+                if new_tno not in list_of_tno:
+                    break
+            ticket_input = get_issue_ticket.get_ticket_info()
+            cursor.execute("INSERT INTO tickets VALUES (?,?,?,?,?)",
+                           (new_tno, reg_info[0], ticket_input[0], ticket_input[1], ticket_input[2]))
+            print("Congratulations comrade! You just gave " + reg_info[5] + " " + reg_info[6] + " a $" + str(ticket_input[0]) + " ticket for: " + ticket_input[1])
+
+    else:
+        print("No matching records.")
+
+
+
+
+
 def main():
     query = open('prj-tables.sql', 'r').read()
     tables = open('a2-data.sql', 'r').read()
@@ -223,7 +266,7 @@ def main():
     # c.executescript(query)
     # c.executescript(tables)
 
-    reg_marriage(c)
+    issue_ticket(c)
 
     conn.commit()
 
