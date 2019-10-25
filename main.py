@@ -12,25 +12,24 @@ import get_issue_ticket
 
 """
 
-(some) Issues;
-1. Queries, (in particular, updates and insertions) are not case-insensitive
-2. The reg_birth method needs to:
-    > add a new person in the 'persons' table,
-    > prompt for parent's name if not in database, and create those persons
+(some) Issues:
     
-3. The get_marriage and get_birth do not currently use the user's location as the birth and marriage location
+>>> The get_marriage and get_birth do not currently use the USERS's location as the birth and marriage location
 
-4. A main menu/UI should be implemented......
+>>> A main menu/UI should be implemented......
     Currently, there is no login, and no interface prompting the user for different actions.
     
-5. Errors need to be caught and dealt with properly...
+>>> Errors need to be caught and dealt with properly, specifically if the user enters something stupid. 
+    Perhaps we can do this in the main method? Instead of catching errors in every function?
+    
 
 """
 
-'''******************************Incomplete******************************'''
+'''******************************Looks completed, testing required******************************'''
 '''Registry agent function 1'''
 
 def reg_birth(cursor):
+
     # Generate a random regno that is not in the database
     cursor.execute("SELECT regno FROM births;")
     list_of_birth_registrations = [row[0] for row in (cursor.fetchall())]
@@ -39,6 +38,7 @@ def reg_birth(cursor):
         if new_regno not in list_of_birth_registrations:
             break
 
+    # Get the info for the newly birth'd person
     birth_input = get_birth.get_birth()
     cursor.execute("SELECT * "
                    "FROM persons "
@@ -51,6 +51,7 @@ def reg_birth(cursor):
                    (birth_input[9], birth_input[10],))
     the_mother = cursor.fetchone()
 
+    # Check if the father and mother exist, if not create them
     if the_father is None:
         print("Father does not exist, creating person.")
         new_father_input = get_new_persons.get_new_persons_parents()
@@ -67,6 +68,7 @@ def reg_birth(cursor):
                         new_mother_input[2], new_mother_input[3],))
         print("Mother, " + birth_input[9] + ", has been added to the database as a new person.")
 
+    # Re-select the father and mother from the database
     cursor.execute("SELECT * "
                    "FROM persons "
                    "WHERE fname=? COLLATE NOCASE AND lname=? COLLATE NOCASE",
@@ -78,10 +80,12 @@ def reg_birth(cursor):
                    (birth_input[9], birth_input[10],))
     the_mother = cursor.fetchone()
 
+    # Enter the new person into the persons table
     cursor.execute("INSERT INTO persons VALUES (?,?,?,?,?,?)",
                    (birth_input[0], birth_input[1], birth_input[2], birth_input[3],
                     the_mother[4], the_mother[5],))
 
+    # Enter the new person into the births table
     cursor.execute("INSERT INTO births VALUES (?,?,?,?,?,?,?,?,?,?)",
                    (new_regno, birth_input[0], birth_input[1], birth_input[4], birth_input[5],
                     birth_input[6], the_father[0], the_father[1], the_mother[0], the_mother[1],))
@@ -326,10 +330,11 @@ def main():
     # c.executescript(query)
     # c.executescript(tables)
 
-    reg_birth(c)
+    process_payment(c)
 
     conn.commit()
 
 
 if __name__ == "__main__":
     main()
+
