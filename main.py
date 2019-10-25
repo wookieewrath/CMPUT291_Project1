@@ -39,11 +39,54 @@ def reg_birth(cursor):
         if new_regno not in list_of_birth_registrations:
             break
 
-    # Insert the new birth based on user inputs
-    entry = get_birth.get_birth()
+    birth_input = get_birth.get_birth()
+    cursor.execute("SELECT * "
+                   "FROM persons "
+                   "WHERE fname=? COLLATE NOCASE AND lname=? COLLATE NOCASE",
+                   (birth_input[7], birth_input[8],))
+    the_father = cursor.fetchone()
+    cursor.execute("SELECT * "
+                   "FROM persons "
+                   "WHERE fname=? COLLATE NOCASE AND lname=? COLLATE NOCASE",
+                   (birth_input[9], birth_input[10],))
+    the_mother = cursor.fetchone()
+
+    if the_father is None:
+        print("Father does not exist, creating person.")
+        new_father_input = get_new_persons.get_new_persons_parents()
+        cursor.execute("INSERT INTO persons VALUES (?,?,?,?,?,?)",
+                       (birth_input[7], birth_input[8], new_father_input[0], new_father_input[1],
+                        new_father_input[2], new_father_input[3],))
+        print("Father, " + birth_input[7] + ", has been added to the database.")
+
+    if the_mother is None:
+        print("Mother does not exist, creating person.")
+        new_mother_input = get_new_persons.get_new_persons_parents()
+        cursor.execute("INSERT INTO persons VALUES (?,?,?,?,?,?)",
+                       (birth_input[9], birth_input[10], new_mother_input[0], new_mother_input[1],
+                        new_mother_input[2], new_mother_input[3],))
+        print("Mother, " + birth_input[9] + ", has been added to the database as a new person.")
+
+    cursor.execute("SELECT * "
+                   "FROM persons "
+                   "WHERE fname=? COLLATE NOCASE AND lname=? COLLATE NOCASE",
+                   (birth_input[7], birth_input[8],))
+    the_father = cursor.fetchone()
+    cursor.execute("SELECT * "
+                   "FROM persons "
+                   "WHERE fname=? COLLATE NOCASE AND lname=? COLLATE NOCASE",
+                   (birth_input[9], birth_input[10],))
+    the_mother = cursor.fetchone()
+
+    cursor.execute("INSERT INTO persons VALUES (?,?,?,?,?,?)",
+                   (birth_input[0], birth_input[1], birth_input[2], birth_input[3],
+                    the_mother[4], the_mother[5],))
+
     cursor.execute("INSERT INTO births VALUES (?,?,?,?,?,?,?,?,?,?)",
-                   (new_regno, entry[0], entry[1], entry[2], entry[3], entry[4], entry[5], entry[6], entry[7],
-                    entry[8],))
+                   (new_regno, birth_input[0], birth_input[1], birth_input[4], birth_input[5],
+                    birth_input[6], the_father[0], the_father[1], the_mother[0], the_mother[1],))
+
+    print(birth_input[0] + " " + birth_input[1] + " is born!!!")
 
 
 '''******************************Looks completed, testing required******************************'''
@@ -102,7 +145,7 @@ def reg_marriage(cursor):
     cursor.execute("INSERT INTO marriages VALUES (?,?,?,?,?,?,?)",
                    (new_regno, today, marriage_input[1], person1[0], person1[1], person2[0], person2[1],))
 
-    print("Congratulations!!! " + person1[0] + " and " + person1[0] + " are now a happily married couple.")
+    print("Congratulations!!! " + person1[0] + " and " + person2[0] + " are now a happily married couple.")
 
 
 '''******************************Looks completed, testing required******************************'''
@@ -283,7 +326,7 @@ def main():
     # c.executescript(query)
     # c.executescript(tables)
 
-    issue_ticket(c)
+    reg_birth(c)
 
     conn.commit()
 
