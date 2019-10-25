@@ -27,6 +27,8 @@ import get_issue_ticket
 
 """
 
+'''******************************Incomplete******************************'''
+'''Registry agent function 1'''
 
 def reg_birth(cursor):
     # Generate a random regno that is not in the database
@@ -45,6 +47,7 @@ def reg_birth(cursor):
 
 
 '''******************************Looks completed, testing required******************************'''
+'''Registry agent function 2'''
 def reg_marriage(cursor):
     # Generate a random regno that is not in the database
     cursor.execute("SELECT regno FROM marriages;")
@@ -103,6 +106,7 @@ def reg_marriage(cursor):
 
 
 '''******************************Looks completed, testing required******************************'''
+'''Registry agent function 3'''
 def renew_registration(cursor):
     # Get registration number from user
     regno = get_registration_renewal.get_registration()
@@ -131,6 +135,7 @@ def renew_registration(cursor):
 
 
 '''******************************Looks completed, testing required******************************'''
+'''Registry agent function 4'''
 def bill_of_sale(cursor):
     # Retrieve the current registration info using the users input
     info_tuple = get_process_sale.get_sale_info()
@@ -180,6 +185,7 @@ def bill_of_sale(cursor):
 
 
 '''******************************Looks completed, testing required******************************'''
+'''Registry agent function 5'''
 def process_payment(cursor):
     # Get the desired payment amount as an integer
     info_tuple = get_ticket_payment_info.get_ticket_payment_info()
@@ -218,7 +224,14 @@ def process_payment(cursor):
         print("Invalid Payment")
 
 
+'''******************************Incomplete******************************'''
+'''Registry agent function 6'''
+def driver_abstract():
+    pass
+
+
 '''******************************Looks completed, testing required******************************'''
+'''Traffic officer function 1'''
 def issue_ticket(cursor):
     regno_input = get_issue_ticket.get_registration()
     cursor.execute("SELECT * "
@@ -252,6 +265,10 @@ def issue_ticket(cursor):
         print("No matching records.")
 
 
+'''******************************Incomplete******************************'''
+'''Traffic officer function 2'''
+def find_car_owner():
+    pass
 
 
 
