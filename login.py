@@ -7,10 +7,11 @@ c = conn.cursor()
 #Right now this function will find a correct enter of username and password in the table and return that user
 #If it doesn't find the username/password combination in the table it will conclude that the user doesn't exist
 #PROBLEM: What if user has correct username but enters the wrong password by accident??
-#SOLUTION: Implement the following 3 cases:
+#SOLUTION: Implement the following 4 cases:
 #1. The username and password were both found in the table -- return the user's type details
-#2. The username is in the table but the password is wrong -- return True to symbolize you need to reprompt for password
-#3. The username and password are not in the table -- return False to symbolize you need to create a new user
+#2. The username is in the table but the password is wrong -- return ['password'] to symbolize you need to reprompt for password
+#3. The password is in the table but the username is wrong -- return ['username']
+#4. The username and password are not in the table -- return False to symbolize you need to create a new user
 def does_user_exist(username, password):
     c.execute("SELECT uid, pwd, utype FROM users WHERE uid = ? AND pwd = ?", (username, password))
     user_in_table = c.fetchone()
