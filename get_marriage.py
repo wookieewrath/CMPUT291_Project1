@@ -18,7 +18,7 @@ def get_regdate():
 
 
 def get_regplace():
-    regplace = input("Enter birth place: ")
+    regplace = input("Enter marriage place: ")
     return regplace
 
 

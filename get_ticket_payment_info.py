@@ -21,4 +21,11 @@ def get_pdate():
 
 def get_amount():
     amount = input("Enter the payment amount: ")
+    while True:
+        try:
+            int(amount)
+            break
+        except ValueError:
+            amount = input("Enter the payment amount: ")
+
     return amount

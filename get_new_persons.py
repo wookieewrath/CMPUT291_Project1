@@ -12,6 +12,16 @@ def get_new_persons():
     return fname, lname, bdate, bplace, address, phone
 
 
+# For register a birth function
+def get_new_persons_parents():
+    bdate = get_bdate()
+    bplace = get_bplace()
+    address = get_address()
+    phone = get_phone()
+
+    return bdate, bplace, address, phone
+
+
 def get_fname():
     fname = input("Enter the new person's first name: ")
     return fname

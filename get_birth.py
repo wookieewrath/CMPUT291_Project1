@@ -1,9 +1,12 @@
 import datetime
+import re
 
 
 def get_birth():
     fname = get_fname()
     lname = get_lname()
+    bdate = get_bdate()
+    bplace = get_bplace()
     regdate = get_regdate().strftime("%Y-%m-%d")
     regplace = get_regplace()
     gender = get_gender()
@@ -12,8 +15,7 @@ def get_birth():
     m_fname = get_m_fname(fname)
     m_lname = get_m_lname(fname)
 
-    return fname, lname, regdate, regplace, gender, f_fname, f_lname, m_fname, m_lname
-
+    return fname, lname, bdate, bplace, regdate, regplace, gender, f_fname, f_lname, m_fname, m_lname
 
 def get_fname():
     fname = input("Enter a first name: ")
@@ -31,7 +33,7 @@ def get_regdate():
 
 
 def get_regplace():
-    regplace = input("Enter birth place: ")
+    regplace = input("Enter registration place: ")
     return regplace
 
 
@@ -61,3 +63,20 @@ def get_m_fname(fname):
 def get_m_lname(fname):
     m_lname = input("Enter " + fname + "'s mother's last name: ")
     return m_lname
+
+def get_bdate():
+    bdate = input("Enter the new person's birth date in YYYY-MM-DD format (include dashes): ")
+
+    while True:
+        if re.match(r"\d{4}-\d{2}-\d{2}", bdate):
+            break
+        else:
+            print("Please enter in YYYY-MM-DD format: ")
+            bdate = input("Enter the new person's birth date in YYYY-MM-DD format (include dashes): ")
+
+    return bdate
+
+
+def get_bplace():
+    bplace = input("Enter new person's birth place: ")
+    return bplace

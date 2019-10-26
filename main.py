@@ -9,27 +9,30 @@ import get_process_sale
 import get_registration_renewal
 import get_ticket_payment_info
 import get_issue_ticket
+import login
 
 """
 
 (some) Issues:
     
 >>> The get_marriage and get_birth do not currently use the USERS's location as the birth and marriage location
-
->>> A main menu/UI should be implemented......
-    Currently, there is no login, and no interface prompting the user for different actions.
     
 >>> Errors need to be caught and dealt with properly, specifically if the user enters something stupid. 
     Perhaps we can do this in the main method? Instead of catching errors in every function?
     
+>>> Registry Agent function #6 needs to be completed
+
+>>> Traffic Officer function #2 needs to be completed
+    
 
 """
 
-'''******************************Looks completed, testing required******************************'''
-'''Registry agent function 1'''
+'''******************************************************************************************************
+*                                      Registry Agent Function 1                                        *
+******************************************************************************************************'''
+
 
 def reg_birth(cursor):
-
     # Generate a random regno that is not in the database
     cursor.execute("SELECT regno FROM births;")
     list_of_birth_registrations = [row[0] for row in (cursor.fetchall())]
@@ -93,8 +96,11 @@ def reg_birth(cursor):
     print(birth_input[0] + " " + birth_input[1] + " is born!!!")
 
 
-'''******************************Looks completed, testing required******************************'''
-'''Registry agent function 2'''
+'''******************************************************************************************************
+*                                      Registry Agent Function 2                                        *
+******************************************************************************************************'''
+
+
 def reg_marriage(cursor):
     # Generate a random regno that is not in the database
     cursor.execute("SELECT regno FROM marriages;")
@@ -152,8 +158,11 @@ def reg_marriage(cursor):
     print("Congratulations!!! " + person1[0] + " and " + person2[0] + " are now a happily married couple.")
 
 
-'''******************************Looks completed, testing required******************************'''
-'''Registry agent function 3'''
+'''******************************************************************************************************
+*                                      Registry Agent Function 3                                        *
+******************************************************************************************************'''
+
+
 def renew_registration(cursor):
     # Get registration number from user
     regno = get_registration_renewal.get_registration()
@@ -162,27 +171,33 @@ def renew_registration(cursor):
     cursor.execute("SELECT expiry "
                    "FROM registrations "
                    "WHERE regno=?;", (regno,))
-    current_expiry = (cursor.fetchone())[0]
-    current_expiry_date = datetime.datetime.strptime(current_expiry, "%Y-%m-%d")  # convert to datetime object
+    current_expiry = (cursor.fetchone())
+    if current_expiry is not None:
+        current_expiry_date = datetime.datetime.strptime(current_expiry[0], "%Y-%m-%d")  # convert to datetime object
 
-    # if already expired, or expires today, then new expiry is one year from today
-    # if not yet expired, update the expiry to one year plus the current expiry date
-    if current_expiry_date.date() <= (datetime.date.today()):
-        next_year = (datetime.date.today() + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
-        cursor.execute("UPDATE registrations "
-                       "SET expiry=? "
-                       "WHERE regno=?", (next_year, regno,))
+        # if already expired, or expires today, then new expiry is one year from today
+        # if not yet expired, update the expiry to one year plus the current expiry date
+        if current_expiry_date.date() <= (datetime.date.today()):
+            next_year = (datetime.date.today() + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
+            cursor.execute("UPDATE registrations "
+                           "SET expiry=? "
+                           "WHERE regno=?", (next_year, regno,))
+        else:
+            next_year = (current_expiry_date + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
+            cursor.execute("UPDATE registrations "
+                           "SET expiry=? "
+                           "WHERE regno=?", (next_year, regno,))
+
+        print("The registration has been renewed")
     else:
-        next_year = (current_expiry_date + datetime.timedelta(days=365)).strftime("%Y-%m-%d")
-        cursor.execute("UPDATE registrations "
-                       "SET expiry=? "
-                       "WHERE regno=?", (next_year, regno,))
-
-    print("The registration has been renewed")
+        print("Invalid registration number")
 
 
-'''******************************Looks completed, testing required******************************'''
-'''Registry agent function 4'''
+'''******************************************************************************************************
+*                                      Registry Agent Function 4                                        *
+******************************************************************************************************'''
+
+
 def bill_of_sale(cursor):
     # Retrieve the current registration info using the users input
     info_tuple = get_process_sale.get_sale_info()
@@ -228,11 +243,14 @@ def bill_of_sale(cursor):
         cursor.execute("INSERT INTO registrations VALUES (?,?,?,?,?,?,?)",
                        (new_regno, today, next_year, info_tuple[5], registration_info[4], new_owner_info[0],
                         new_owner_info[1],))
-        print("A new registration has been created")
+        print("A new registration has been created.")
 
 
-'''******************************Looks completed, testing required******************************'''
-'''Registry agent function 5'''
+'''******************************************************************************************************
+*                                      Registry Agent Function 5                                        *
+******************************************************************************************************'''
+
+
 def process_payment(cursor):
     # Get the desired payment amount as an integer
     info_tuple = get_ticket_payment_info.get_ticket_payment_info()
@@ -242,43 +260,52 @@ def process_payment(cursor):
     cursor.execute("SELECT * "
                    "FROM tickets "
                    "WHERE tno=?;", (info_tuple[0],))
-    fine = int(cursor.fetchone()[2])
+    fine = cursor.fetchone()
 
-    # Get the payments until now (if they exist) from the database
-    cursor.execute("SELECT amount "
-                   "FROM payments "
-                   "WHERE tno=?;", (info_tuple[0],))
+    if fine is not None:
+        # Get the payments until now (if they exist) from the database
+        cursor.execute("SELECT amount "
+                       "FROM payments "
+                       "WHERE tno=?;", (info_tuple[0],))
 
-    currently_paid = cursor.fetchone()
-    if currently_paid is None:
-        pass
+        currently_paid = cursor.fetchone()
+        if currently_paid is None:
+            pass
+        else:
+            currently_paid = int(currently_paid[0])
+
+        # If there are no payments yet, and the fine>=desired_payment, insert into payments
+        # If there are payments, and the fine>=desired_payment+payments_until_now, update the payments table
+        # Else, the payment is invalid
+        if currently_paid is None and int(fine[2]) >= payment_amount:
+            cursor.execute("INSERT INTO payments VALUES (?,?,?)",
+                           (info_tuple[0], info_tuple[1], info_tuple[2],))
+            print("A payment of " + str(payment_amount) + " was processed for ticket number: " + info_tuple[0])
+        elif currently_paid is not None and int(fine[2]) >= currently_paid + payment_amount:
+            new_paid = currently_paid + payment_amount
+            cursor.execute("UPDATE payments SET amount=? WHERE tno=?",
+                           (new_paid, info_tuple[0]))
+            print("A payment of " + str(payment_amount) + " was processed for ticket number " + info_tuple[0])
+        else:
+            print("Invalid Payment")
     else:
-        currently_paid = int(currently_paid[0])
-
-    # If there are no payments yet, and the fine>=desired_payment, insert into payments
-    # If there are payments, and the fine>=desired_payment+payments_until_now, update the payments table
-    # Else, the payment is invalid
-    if currently_paid is None and fine >= payment_amount:
-        cursor.execute("INSERT INTO payments VALUES (?,?,?)",
-                       (info_tuple[0], info_tuple[1], info_tuple[2],))
-        print("A payment of " + str(payment_amount) + " was processed for ticket number: " + info_tuple[0])
-    elif currently_paid is not None and fine >= currently_paid + payment_amount:
-        new_paid = currently_paid + payment_amount
-        cursor.execute("UPDATE payments SET amount=? WHERE tno=?",
-                       (new_paid, info_tuple[0]))
-        print("A payment of " + str(payment_amount) + " was processed for ticket number " + info_tuple[0])
-    else:
-        print("Invalid Payment")
+        print("Invalid Ticket")
 
 
-'''******************************Incomplete******************************'''
-'''Registry agent function 6'''
-def driver_abstract():
+'''******************************************************************************************************
+*                                      Registry Agent Function 6                                        *
+******************************************************************************************************'''
+
+
+def driver_abstract(cursor):
     pass
 
 
-'''******************************Looks completed, testing required******************************'''
-'''Traffic officer function 1'''
+'''******************************************************************************************************
+*                                     Traffic Officer Function 1                                        *
+******************************************************************************************************'''
+
+
 def issue_ticket(cursor):
     regno_input = get_issue_ticket.get_registration()
     cursor.execute("SELECT * "
@@ -292,7 +319,8 @@ def issue_ticket(cursor):
                        "WHERE vin=?;", (reg_info[4],))
         vehicle_info = cursor.fetchone()
 
-        print(reg_info[5] + " " + reg_info[6] + " drives a: " + vehicle_info[4] + " " + str(vehicle_info[3]) + " " + vehicle_info[1] + " " + vehicle_info[2])
+        print(reg_info[5] + " " + reg_info[6] + " drives a: " + vehicle_info[4] + " " + str(vehicle_info[3]) + " " +
+              vehicle_info[1] + " " + vehicle_info[2])
 
         give_ticket = input("Would you like to give " + reg_info[5] + " " + reg_info[6] + " a ticket? (Y/N): ")
 
@@ -306,17 +334,83 @@ def issue_ticket(cursor):
             ticket_input = get_issue_ticket.get_ticket_info()
             cursor.execute("INSERT INTO tickets VALUES (?,?,?,?,?)",
                            (new_tno, reg_info[0], ticket_input[0], ticket_input[1], ticket_input[2]))
-            print("Congratulations comrade! You just gave " + reg_info[5] + " " + reg_info[6] + " a $" + str(ticket_input[0]) + " ticket for: " + ticket_input[1])
+            print("Congratulations comrade! You just gave " + reg_info[5] + " " + reg_info[6] + " a $" + str(
+                ticket_input[0]) + " ticket for: " + ticket_input[1])
 
     else:
         print("No matching records.")
 
 
-'''******************************Incomplete******************************'''
-'''Traffic officer function 2'''
-def find_car_owner():
+'''******************************************************************************************************
+*                                     Traffic Officer Function 2                                        *
+******************************************************************************************************'''
+
+
+def find_car_owner(cursor):
     pass
 
+
+'''******************************************************************************************************
+*                                         Registry Agent Menu                                           *
+******************************************************************************************************'''
+
+
+def agent_menu(cursor, connection):
+    while True:
+        connection.commit()
+        user_entry = input("\nSelect from one of the following options:\n"
+                           "1. Register a birth\n"
+                           "2. Register a marriage\n"
+                           "3. Renew a vehicle registration\n"
+                           "4. Process a bill of sale\n"
+                           "5. Process a payment amount\n"
+                           "6. Get a driver abstract\n"
+                           "0. EXIT\n")
+
+        if user_entry == "1":
+            reg_birth(cursor)
+        elif user_entry == "2":
+            reg_marriage(cursor)
+        elif user_entry == "3":
+            renew_registration(cursor)
+        elif user_entry == "4":
+            bill_of_sale(cursor)
+        elif user_entry == "5":
+            process_payment(cursor)
+        elif user_entry == "6":
+            driver_abstract(cursor)
+        elif user_entry == "0":
+            break
+        else:
+            print("Invalid input\n")
+
+
+'''******************************************************************************************************
+*                                         Traffic Officer Menu                                          *
+******************************************************************************************************'''
+
+
+def officer_menu(cursor, connection):
+    while True:
+        connection.commit()
+        user_entry = input("\nSelect from one of the following options:\n"
+                           "1. Issue a ticket\n"
+                           "2. Find a car owner\n"
+                           "0. EXIT\n")
+
+        if user_entry == "1":
+            issue_ticket(cursor)
+        elif user_entry == "2":
+            find_car_owner(cursor)
+        elif user_entry == "0":
+            break
+        else:
+            print("Invalid input\n")
+
+
+'''******************************************************************************************************
+*                                              MAIN METHOD                                              *
+******************************************************************************************************'''
 
 
 def main():
@@ -324,17 +418,21 @@ def main():
     tables = open('a2-data.sql', 'r').read()
 
     conn = sqlite3.connect('./testProject.db')
-    c = conn.cursor()
+    cursor = conn.cursor()
 
-    c.executescript('PRAGMA foreign_keys=ON;')
+    cursor.executescript('PRAGMA foreign_keys=ON;')
     # c.executescript(query)
     # c.executescript(tables)
 
-    process_payment(c)
+    login_attempt = login.login(cursor)
+    if login_attempt != False:
+        if login_attempt[2].lower() == "o":
+            officer_menu(cursor, conn)
+        elif login_attempt[2].lower() == "a":
+            agent_menu(cursor, conn)
 
     conn.commit()
 
 
 if __name__ == "__main__":
     main()
-

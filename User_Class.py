@@ -7,3 +7,4 @@ class User:
         self.fname = first_name
         self.lname = last_name
         self.city = city
+
