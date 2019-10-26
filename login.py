@@ -18,7 +18,7 @@ def get_login_details():
 #If the username and password were entered in correctly: return (username, password, type).
 #If the user misspells the password: return True.
 #If the user does not exist: return False.
-def does_user_exist(username, password):
+def does_user_exist(username, password, c):
     #Find the username password combination in the table.
     c.execute("SELECT uid, pwd, utype FROM users WHERE uid = ? AND pwd = ?", (username, password))
     user_in_table = c.fetchone()
@@ -43,23 +43,21 @@ def does_user_exist(username, password):
            
             
 #This function creates a user and adds it to the database.         
-def create_user(uid, pwd, utype, fname, lname, city):
-    c.execute("CREATE TABLE IF NOT EXISTS users(uid TEXT, pwd TEXT, utype CHAR(1), fname TEXT, lname TEXT, city TEXT)")
+def create_user(uid, pwd, utype, fname, lname, city, c):
     c.execute("INSERT INTO users VALUES(?,?,?,?,?,?)", (uid, pwd, utype, fname, lname, city))
-    conn.commit()
     
     
 #This function will provide the login menu for the program.
 #False return value means login was not successful.
 #User type return value when login was successful.
-def login():
+def login(c):
     #Ask the user to enter their username and password.
     login_details = get_login_details()
     username = login_details[0]
     password = login_details[1]
     
     #Check is these credentials correspond to an existing user.
-    existing_user = does_user_exist(username, password) 
+    existing_user = does_user_exist(username, password, c) 
     
     #If the user exists inside the table, there was a spelling error.
     if existing_user == True:
@@ -80,9 +78,9 @@ def login():
             uname = login_information[0]
             passw = login_information[1]
             utype = input("Is " + uname + " a traffic officer or a registry agent? o/a: ").strip().lower()
-            city = input("What city does this user operate in? ").strip().lower()
-            create_user(uname, passw, utype, fname, lname, city)
+            city = input("What city does this user operate in? ").strip().title()
             c.execute("INSERT INTO persons VALUES(?,?,?,?,?,?)", (fname, lname, bdate, bplace, address, phone_number))
+            create_user(uname, passw, utype, fname, lname, city, c)
         return False
             
     #If the credentials were entered in correctly, return the type of the user.
