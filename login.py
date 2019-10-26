@@ -15,8 +15,8 @@ def get_login_details():
 
 #This function will check whether the user exists or doesn't exist based on the username and password.
 #If the username and password were entered in correctly: return (username, password, type)
-#If the user misspells the username or password, return True
-#If the user does not exists, return False
+#If the user misspells the username, return True
+#If the user does not exist, return False
 def does_user_exist(username, password):
     #Find the username password combination in the table
     c.execute("SELECT uid, pwd, utype FROM users WHERE uid = ? AND pwd = ?", (username, password))
