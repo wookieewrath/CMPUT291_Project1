@@ -3,11 +3,11 @@ CMPTU291_Project1
 
 (some) Issues:
     
->>> The get_marriage and get_birth do not currently use the USERS's location as the birth and marriage location.
->>> Errors need to be caught and dealt with properly, specifically if the user enters something stupid. 
+1. The get_marriage and get_birth do not currently use the USERS's location as the birth and marriage location.
+2. Errors need to be caught and dealt with properly, specifically if the user enters something stupid. 
     Perhaps we can do this in the main method? Instead of catching errors in every function.
->>> Registry Agent function #6 needs to be completed
->>> Traffic Officer function #2 needs to be completed
+3. Registry Agent function #6 needs to be completed
+4. Traffic Officer function #2 needs to be completed
 
 
 NOTE 1 
