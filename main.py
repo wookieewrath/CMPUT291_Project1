@@ -56,7 +56,7 @@ def reg_birth(cursor):
 
     # Check if the father and mother exist, if not create them
     if the_father is None:
-        print("Father does not exist, creating person.")
+        print("Father does not exist, creating person. Please enter details of the father:")
         new_father_input = get_new_persons.get_new_persons_parents()
         cursor.execute("INSERT INTO persons VALUES (?,?,?,?,?,?)",
                        (birth_input[7], birth_input[8], new_father_input[0], new_father_input[1],
@@ -64,7 +64,7 @@ def reg_birth(cursor):
         print("Father, " + birth_input[7] + ", has been added to the database.")
 
     if the_mother is None:
-        print("Mother does not exist, creating person.")
+        print("Mother does not exist, creating person. Please enter details of the mother:")
         new_mother_input = get_new_persons.get_new_persons_parents()
         cursor.execute("INSERT INTO persons VALUES (?,?,?,?,?,?)",
                        (birth_input[9], birth_input[10], new_mother_input[0], new_mother_input[1],
