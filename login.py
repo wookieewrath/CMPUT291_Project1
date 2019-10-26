@@ -6,64 +6,66 @@ import sqlite3
 from get_new_persons import get_new_persons
 
 
-# Obtain the username and password from the console
+#Obtain the username and password from the console.
+#Return [username, password].
 def get_login_details():
     username = input("Username: ")
     password = input("Password: ")
     return [username, password]
 
 
-# This function will check whether the user exists or doesn't exist based on the username and password.
-# If the username and password were entered in correctly: return (username, password, type)
-# If the user misspells the username, return True
-# If the user does not exist, return False
-def does_user_exist(username, password, c):
-    # Find the username password combination in the table
-    c.execute("SELECT uid, pwd, utype, city FROM users WHERE uid = ? AND pwd = ?", (username, password))
+#This function will check whether the user exists or doesn't exist based on the username and password.
+#If the username and password were entered in correctly: return (username, password, type).
+#If the user misspells the password: return True.
+#If the user does not exist: return False.
+def does_user_exist(username, password):
+    #Find the username password combination in the table.
+    c.execute("SELECT uid, pwd, utype FROM users WHERE uid = ? AND pwd = ?", (username, password))
     user_in_table = c.fetchone()
-
-    # If the username and password were entered correctly we return that user.
+    
+    #If the username and password were entered correctly we return that user. 
     if user_in_table != None:
         return user_in_table
-
-    # If we did not find an exact username and password combination...
+    
+    #If we did not find an exact username and password combination...
     else:
-        # Find the username somewhere in the table
+        #Find the username somewhere in the table.
         c.execute("SELECT uid FROM users WHERE uid = ?", (username,))
         matching_usernames = c.fetchall()
-
-        # If either the username exists somewhere, we conclude that the user exists and there was just a console spelling error
+        
+        #If either the username exists somewhere, we conclude that the user exists and there was just a console spelling error.
         if (len(matching_usernames) > 0):
             return True
-
-        # If the username doesn't exist anywhere inside the table, we concluse that the user doesn't exist
+        
+        #If the username doesn't exist anywhere inside the table, we concluse that the user doesn't exist.
         else:
             return False
-
-
-# This function creates a user and adds it to the database.
-def create_user(uid, pwd, utype, fname, lname, city, c):
+           
+            
+#This function creates a user and adds it to the database.         
+def create_user(uid, pwd, utype, fname, lname, city):
     c.execute("CREATE TABLE IF NOT EXISTS users(uid TEXT, pwd TEXT, utype CHAR(1), fname TEXT, lname TEXT, city TEXT)")
     c.execute("INSERT INTO users VALUES(?,?,?,?,?,?)", (uid, pwd, utype, fname, lname, city))
-
-
-# This function will provide the login menu for the program.
-# False return value means login was not successful.
-# User type return value when login was successful.
-def login(c):
-    # Ask the user to enter their username and password
+    conn.commit()
+    
+    
+#This function will provide the login menu for the program.
+#False return value means login was not successful.
+#User type return value when login was successful.
+def login():
+    #Ask the user to enter their username and password.
     login_details = get_login_details()
     username = login_details[0]
     password = login_details[1]
-
-    # Check is these credentials correspond to an existing user
-    existing_user = does_user_exist(username, password, c)
-
-    # If the user exists inside the table, tell the console there was a spelling error
+    
+    #Check is these credentials correspond to an existing user.
+    existing_user = does_user_exist(username, password) 
+    
+    #If the user exists inside the table, there was a spelling error.
     if existing_user == True:
         return False
-
-        # If the user doesn't exist in the table, provide the option to create a user with those credentials.
+        
+    #If the user doesn't exist in the table, provide the option to create a user with those credentials.
     elif existing_user == False:
         create = input("This user does not exist. Do you want to create a user? yes/no: ").strip().lower()
         if create == 'yes':
@@ -75,14 +77,15 @@ def login(c):
             bplace = personal_details[3]
             address = personal_details[4]
             phone_number = personal_details[5]
-            uname = login_details[0]
-            passw = login_details[1]
-            utype = input("Is " + uname + " a traffic officer or registry agent? o/a: ")
-            city = input("What city does this user operate in? ")
-            create_user(uname, passw, utype, fname, lname, city, c)
+            uname = login_information[0]
+            passw = login_information[1]
+            utype = input("Is " + uname + " a traffic officer or a registry agent? o/a: ").strip().lower()
+            city = input("What city does this user operate in? ").strip().lower()
+            create_user(uname, passw, utype, fname, lname, city)
             c.execute("INSERT INTO persons VALUES(?,?,?,?,?,?)", (fname, lname, bdate, bplace, address, phone_number))
         return False
-
-    # If the credentials were entered in correctly, print out the type of the user
+            
+    #If the credentials were entered in correctly, return the type of the user.
+    #Return 'a' for agent or 'o' for officer.
     else:
-        return existing_user
+        return existing_user[2]
