@@ -345,10 +345,85 @@ def issue_ticket(cursor):
 *                                     Traffic Officer Function 2                                        *
 ******************************************************************************************************'''
 
-
 def find_car_owner(cursor):
-    pass
+    input_dictionary = {} #Will store {string_query : record_of_interest_value} pairs
+    search_string = ' ' #Initializes a string which will later be used in a query searching for cars with user inputted data
+    search_values = [] #A list of not-null values the user enters from the console, to be used in conjuction with the search_string
+    
+    #Get the relevant data about the vehicles of interest from the user
+    #Add data to the dictionary as (key = relevant part of query search_string) and (value = user inputted value)
+    make = input("Enter the vehicle make (Press ENTER to skip): ").strip().title()
+    input_dictionary["AND make = ? "] = make
+    model = input("Enter the vehicle model (Press ENTER to skip): ").strip().title()
+    input_dictionary["AND model = ? "] = model
+    year = input("Enter the vehicle year (Press ENTER to skip): ").strip().title()
+    input_dictionary["AND year = ? "] = year
+    colour = input("Enter the vehicle colour (Press ENTER to skip): ").strip().title()
+    input_dictionary["AND colour = ? "] = colour
+    plate = input("Enter the vehicle plate (Press ENTER to skip): ").strip()
+    input_dictionary["AND plate = ? "] = plate
+    
+    #For every key in the dictionary representing a vehicle field, if the user did not enter a null value and skip it...
+    #We add this string search field to search_string
+    #We also add the (not null) user value into the search_values list
+    for key in input_dictionary:
+        if input_dictionary[key] != '':
+            search_string = search_string + key
+            search_values.append(input_dictionary.get(key))
+    
+    #Convert the search values list to a tuple to be syntactically used in the query
+    search_values = tuple(search_values)
+    
+    #Execute the query with the user defined search_string and search_values
+    cursor.execute("SELECT make, model, year, color, plate "
+                   "FROM registrations LEFT JOIN vehicles "
+                   "WHERE vehicles.vin = registrations.vin "
+                   + search_string, search_values)
+    
+    #Store the matching rows of the database in matching_vehicles
+    #vehicles_to_search = shortlist of vehicles, depending on length of matching_vehicles, we need to find owners for
+    matching_vehicles = cursor.fetchall()
+    vehicles_to_search = []
+    
+    #If there are > 4 matching vehicles, ask the user to choose a particular vehicle to find its owner
+    #Add the user choice to the shortlist vehicles_to_search
+    count = 0
+    if len(matching_vehicles) > 4:
+        for i in range(len(matching_vehicles)):
+            count = count + 1
+            print("VEHICLE:", count)
+            print("MAKE:", matching_vehicles[i][0])
+            print("MODEL:", matching_vehicles[i][1])
+            print("YEAR:", matching_vehicles[i][2])
+            print("COLOUR:", matching_vehicles[i][3])
+            print("PLATE:", matching_vehicles[i][4], "\n")
+        
+        chosen_vehicle = int(input("Please enter VEHICLE NUMBER to look up: "))
+        vehicles_to_search.append(matching_vehicles[(chosen_vehicle - 1)])
+    
+    #If there are < 4 matching vehicles, we just find the owners of all of them
+    #Set the shortlist = original list (matching_vehicles)
+    else:
+        vehicles_to_search = matching_vehicles
+    
+    #For every car in the shortlist: print out the owner and their registration/vehicle details
+    for i in range(len(vehicles_to_search)):
+        cursor.execute("SELECT regdate, expiry, fname, lname "
+                       "FROM vehicles, registrations "
+                       "WHERE vehicles.vin = registrations.vin "
+                       "AND make = ? AND model = ? AND year = ? AND color = ? AND plate = ?", (vehicles_to_search[i]))
+        
+        owner = cursor.fetchone()
 
+        print("\nVEHICLE OWNER:", owner[2] + " " + owner[3])
+        print("REGISTRATION DATE:", owner[0])
+        print("EXPIRY:", owner[1])
+        print("MAKE:", vehicles_to_search[i][0])
+        print("MODEL:", vehicles_to_search[i][1])
+        print("YEAR:", vehicles_to_search[i][2])
+        print("COLOUR:", vehicles_to_search[i][3])
+        print("PLATE:", vehicles_to_search[i][4])
+        
 
 '''******************************************************************************************************
 *                                         Registry Agent Menu                                           *
@@ -414,8 +489,8 @@ def officer_menu(cursor, connection):
 
 
 def main():
-    query = open('prj-tables.sql', 'r').read()
-    tables = open('a2-data.sql', 'r').read()
+    #query = open('prj-tables.sql', 'r').read()
+    #tables = open('a2-data.sql', 'r').read()
 
     conn = sqlite3.connect('./testProject.db')
     cursor = conn.cursor()
@@ -426,9 +501,9 @@ def main():
 
     login_attempt = login.login(cursor)
     if login_attempt != False:
-        if login_attempt[2].lower() == "o":
+        if login_attempt == "o":
             officer_menu(cursor, conn)
-        elif login_attempt[2].lower() == "a":
+        elif login_attempt == "a":
             agent_menu(cursor, conn)
 
     conn.commit()
