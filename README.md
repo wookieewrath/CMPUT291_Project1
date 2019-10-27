@@ -1,5 +1,8 @@
 CMPTU291_Project1
-
+★★★★★★★★★★Kamillah -- October 26 2019:
+Hey :)
+-I finished Traffic Officer function #2 and left detailed comments of my code so you guys can understand it. If there are any questions, text me. I tested it extensively so it's bulletproof :D.
+-I will work on our entire program's error-handling ability over the next week and write up a new data-set testing all the edge-cases. Will upload the results.★★★★★★★★★★
 
 (some) Issues:
     
@@ -7,8 +10,7 @@ CMPTU291_Project1
 2. Errors need to be caught and dealt with properly, specifically if the user enters something stupid. 
     Perhaps we can do this in the main method? Instead of catching errors in every function.
 3. Registry Agent function #6 needs to be completed
-4. Traffic Officer function #2 needs to be completed
-
+4. Traffic Officer function #2 needs to be completed 
 
 NOTE 1 
 
