@@ -10,6 +10,7 @@ import get_registration_renewal
 import get_ticket_payment_info
 import get_issue_ticket
 import login
+import math
 
 """
 
@@ -298,7 +299,96 @@ def process_payment(cursor):
 
 
 def driver_abstract(cursor):
-    pass
+
+    #receiving input of names
+    f_name = input("Enter first name of driver")
+    l_name = input("Enter last name of driver")
+
+    cursor.execute("SELECT * FROM persons WHERE fname = ? AND lname = ?", (f_name,l_name))
+    person_exists = cursor.fetchall()
+
+    #checking if user exists in the data base
+    if len(person_exists) == 0:
+        print("This user does not exist in the data base")
+        return
+
+    ordered = input("\nWould you like the tickets displayed from latest to oldest? (y/n)").lower()
+
+    #ordering if ordering requested
+    if ordered == 'y':
+        cursor.execute("SELECT tickets.tno, tickets.vdate, tickets.violation, tickets.fine,tickets.regno, vehicles.make, vehicles.model FROM vehicles,tickets,registrations WHERE registrations.fname = ? AND registrations.lname = ? AND registrations.regno = tickets.regno AND vehicles.vin = registrations.vin ORDER BY date(tickets.vdate) DESC;", (f_name,l_name))
+        abstract_info = cursor.fetchall()
+
+    else:
+        cursor.execute("SELECT tickets.tno, tickets.vdate, tickets.violation, tickets.fine,tickets.regno, vehicles.make, vehicles.model FROM vehicles,tickets,registrations WHERE registrations.fname = ? AND registrations.lname = ? AND registrations.regno = tickets.regno AND vehicles.vin = registrations.vin;",(f_name, l_name))
+        abstract_info = cursor.fetchall()
+
+    num_tickets = len(abstract_info)
+
+    cursor.execute("SELECT COUNT(*), SUM(points) FROM demeritNotices WHERE fname = ? AND lname = ?;",(f_name,l_name))
+    demerits = cursor.fetchall()
+    num_demerits= demerits[0][0]
+    demerit_points = demerits[0][1]
+
+    if demerit_points == None:
+        demerit_points = 0
+
+    cursor.execute("SELECT SUM(points) FROM demeritNotices WHERE fname = ? AND lname = ? AND date(ddate) >= date('now','-2 year');",(f_name,l_name))
+    demerits_last_2_years = cursor.fetchall()
+
+    if demerits_last_2_years[0][0] == None:
+        demerits_last_2_years = 0
+
+    else:
+        demerits_last_2_years = demerits_last_2_years[0][0]
+
+    print("\n%s %s has %s tickets, %s demerit notices, %s lifetime demerit points and %s demerit points in the last 2 years.\n" %(f_name,l_name,num_tickets,num_demerits,demerit_points,demerits_last_2_years))
+
+    if num_tickets == 0:
+        print("%s %s has no tickets in the database!" % (f_name,l_name))
+
+    else:
+
+        print("%s %s has the following tickets:\n"%(f_name,l_name))
+        i = 0
+        while i < num_tickets and i < 5:
+            ticket_number = abstract_info[i][0]
+            vio_date = abstract_info[i][1]
+            vio_descript = abstract_info[i][2]
+            fine = abstract_info[i][3]
+            reg_num = abstract_info[i][4]
+            make = abstract_info[i][5]
+            model = abstract_info[i][6]
+            i+=1
+
+            print("Ticket number: %s Violation Date: %s Violation Description: %s Fine: %s Registration Number: %s Make: %s Model: %s" % (ticket_number,vio_date,vio_descript,fine,reg_num,make,model))
+
+
+        if num_tickets > 5:
+            more_tickets = input("%s %s has more tickets, would you like to see more? (y/n)"%(f_name,l_name)).lower()
+            loops = math.ceil(num_tickets/5)
+            j = 0
+            while i < num_tickets:
+                if more_tickets == 'y':
+                    k = 0
+                    while j < loops and k <5 and i < num_tickets:
+                        ticket_number = abstract_info[i][0]
+                        vio_date = abstract_info[i][1]
+                        vio_descript = abstract_info[i][2]
+                        fine = abstract_info[i][3]
+                        reg_num = abstract_info[i][4]
+                        make = abstract_info[i][5]
+                        model = abstract_info[i][6]
+                        i+=1
+                        k+=1
+
+                        print("Ticket number: %s Violation Date: %s Violation Description: %s Fine: %s Registration Number: %s Make: %s Model: %s" % (ticket_number, vio_date, vio_descript, fine, reg_num, make, model))
+
+                elif more_tickets != 'y':
+                    break
+
+                if j < loops and i < num_tickets:
+                    more_tickets = input("%s %s has more tickets, would you like to see more? (y/n)"%(f_name,l_name)).lower()
 
 
 '''******************************************************************************************************
