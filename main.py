@@ -302,7 +302,7 @@ def driver_abstract(cursor):
 
     #receiving input of names
     f_name = input("Enter first name of driver: ")
-    l_name = input("Enter last name of driver: \n")
+    l_name = input("Enter last name of driver: ")
 
     cursor.execute("SELECT * FROM persons WHERE fname = ? AND lname = ?", (f_name,l_name))
     person_exists = cursor.fetchall()
