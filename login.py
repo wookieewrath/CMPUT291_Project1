@@ -2,15 +2,15 @@ import sqlite3
 import datetime
 import random
 import sqlite3
-
+from getpass import getpass
 from get_new_persons import get_new_persons
 
 
 #Obtain the username and password from the console.
 #Return [username, password].
 def get_login_details():
-    username = input("Username: ")
-    password = input("Password: ")
+    username = input("\nUsername: ")
+    password = getpass("Password: ")
     return [username, password]
 
 
@@ -38,7 +38,7 @@ def does_user_exist(username, password, c):
             return True
         
         #If the username doesn't exist anywhere inside the table, we concluse that the user doesn't exist.
-        else:
+        elif (len(matching_usernames) == 0):
             return False
            
             
@@ -61,6 +61,7 @@ def login(c):
     
     #If the user exists inside the table, there was a spelling error.
     if existing_user == True:
+        print("Username/Password combination entered incorrectly. Please try again.")
         return False
         
     #If the user doesn't exist in the table, provide the option to create a user with those credentials.
@@ -81,7 +82,10 @@ def login(c):
             city = input("What city does this user operate in? ").strip().title()
             c.execute("INSERT INTO persons VALUES(?,?,?,?,?,?)", (fname, lname, bdate, bplace, address, phone_number))
             create_user(uname, passw, utype, fname, lname, city, c)
-        return False
+            return False
+    
+        elif create == 'no':
+            return False
             
     #If the credentials were entered in correctly, return the type of the user.
     #Return 'a' for agent or 'o' for officer.
