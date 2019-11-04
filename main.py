@@ -453,8 +453,8 @@ def find_car_owner(cursor):
     input_dictionary["AND model = ? "] = model
     year = input("Enter the vehicle year (Press ENTER to skip): ").strip().title()
     input_dictionary["AND year = ? "] = year
-    colour = input("Enter the vehicle colour (Press ENTER to skip): ").strip().title()
-    input_dictionary["AND colour = ? "] = colour
+    color = input("Enter the vehicle color (Press ENTER to skip): ").strip().lower()
+    input_dictionary["AND color = ? "] = color
     plate = input("Enter the vehicle plate (Press ENTER to skip): ").strip()
     input_dictionary["AND plate = ? "] = plate
     
@@ -470,10 +470,11 @@ def find_car_owner(cursor):
     search_values = tuple(search_values)
     
     #Execute the query with the user defined search_string and search_values
-    cursor.execute("SELECT make, model, year, color, plate "
+    cursor.execute("SELECT make, model, year, color, plate, regdate, expiry, fname, lname "
                    "FROM registrations LEFT JOIN vehicles "
                    "WHERE vehicles.vin = registrations.vin "
-                   + search_string, search_values)
+                   + search_string + "GROUP BY fname, lname " 
+                   "HAVING MAX(expiry); ", search_values)
     
     #Store the matching rows of the database in matching_vehicles
     #vehicles_to_search = shortlist of vehicles, depending on length of matching_vehicles, we need to find owners for
@@ -490,7 +491,7 @@ def find_car_owner(cursor):
             print("MAKE:", matching_vehicles[i][0])
             print("MODEL:", matching_vehicles[i][1])
             print("YEAR:", matching_vehicles[i][2])
-            print("COLOUR:", matching_vehicles[i][3])
+            print("COLOR:", matching_vehicles[i][3])
             print("PLATE:", matching_vehicles[i][4], "\n")
         
         chosen_vehicle = int(input("Please enter VEHICLE NUMBER to look up: "))
@@ -503,20 +504,14 @@ def find_car_owner(cursor):
     
     #For every car in the shortlist: print out the owner and their registration/vehicle details
     for i in range(len(vehicles_to_search)):
-        cursor.execute("SELECT regdate, expiry, fname, lname "
-                       "FROM vehicles, registrations "
-                       "WHERE vehicles.vin = registrations.vin "
-                       "AND make = ? AND model = ? AND year = ? AND color = ? AND plate = ?", (vehicles_to_search[i]))
-        
-        owner = cursor.fetchone()
-
-        print("\nVEHICLE OWNER:", owner[2] + " " + owner[3])
-        print("REGISTRATION DATE:", owner[0])
-        print("EXPIRY:", owner[1])
+        owner = vehicles_to_search[i]
+        print("\nVEHICLE OWNER:", owner[7] + " " + owner[8])
+        print("REGISTRATION DATE:", owner[5])
+        print("EXPIRY:", owner[6])
         print("MAKE:", vehicles_to_search[i][0])
         print("MODEL:", vehicles_to_search[i][1])
         print("YEAR:", vehicles_to_search[i][2])
-        print("COLOUR:", vehicles_to_search[i][3])
+        print("COLOR:", vehicles_to_search[i][3])
         print("PLATE:", vehicles_to_search[i][4])
         
 
@@ -594,7 +589,12 @@ def main():
     # c.executescript(query)
     # c.executescript(tables)
 
+    print("★ ★ WELCOME TO THE REGISTRY DATABASE! ★ ★")
+    print("LOG IN:")
     login_attempt = login.login(cursor)
+    while login_attempt == False:
+        login_attempt = login.login(cursor)
+        
     if login_attempt != False:
         if login_attempt[0] == "o":
             officer_menu(cursor, conn)
