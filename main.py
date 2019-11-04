@@ -301,15 +301,15 @@ def process_payment(cursor):
 def driver_abstract(cursor):
 
     #receiving input of names
-    f_name = input("Enter first name of driver")
-    l_name = input("Enter last name of driver")
+    f_name = input("Enter first name of driver: ")
+    l_name = input("Enter last name of driver: \n")
 
     cursor.execute("SELECT * FROM persons WHERE fname = ? AND lname = ?", (f_name,l_name))
     person_exists = cursor.fetchall()
 
     #checking if user exists in the data base
     if len(person_exists) == 0:
-        print("This user does not exist in the data base")
+        print("This user does not exist in the data base\n")
         return
 
     ordered = input("\nWould you like the tickets displayed from latest to oldest? (y/n)").lower()
@@ -366,7 +366,7 @@ def driver_abstract(cursor):
             model = abstract_info[i][6]
             i+=1
 
-            print("Ticket number: %s Violation Date: %s Violation Description: %s Fine: %s Registration Number: %s Make: %s Model: %s" % (ticket_number,vio_date,vio_descript,fine,reg_num,make,model))
+            print("Ticket number: %s Violation Date: %s Violation Description: %s Fine: %s Registration Number: %s Make: %s Model: %s\n" % (ticket_number,vio_date,vio_descript,fine,reg_num,make,model))
 
 
         if num_tickets > 5:
