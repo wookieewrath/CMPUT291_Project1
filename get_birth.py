@@ -33,8 +33,8 @@ def get_regdate():
 
 
 def get_regplace():
-    regplace = input("Enter registration place: ")
-    return regplace
+    print("Agent's city will be used for registration place")
+    return None
 
 
 def get_gender():

@@ -33,7 +33,7 @@ import math
 ******************************************************************************************************'''
 
 
-def reg_birth(cursor):
+def reg_birth(cursor, agent_city):
     # Generate a random regno that is not in the database
     cursor.execute("SELECT regno FROM births;")
     list_of_birth_registrations = [row[0] for row in (cursor.fetchall())]
@@ -91,7 +91,7 @@ def reg_birth(cursor):
 
     # Enter the new person into the births table
     cursor.execute("INSERT INTO births VALUES (?,?,?,?,?,?,?,?,?,?)",
-                   (new_regno, birth_input[0], birth_input[1], birth_input[4], birth_input[5],
+                   (new_regno, birth_input[0], birth_input[1], birth_input[4], agent_city,
                     birth_input[6], the_father[0], the_father[1], the_mother[0], the_mother[1],))
 
     print(birth_input[0] + " " + birth_input[1] + " is born!!!")
@@ -102,7 +102,7 @@ def reg_birth(cursor):
 ******************************************************************************************************'''
 
 
-def reg_marriage(cursor):
+def reg_marriage(cursor, agent_city):
     # Generate a random regno that is not in the database
     cursor.execute("SELECT regno FROM marriages;")
     list_of_marriage_registrations = [row[0] for row in (cursor.fetchall())]
@@ -154,7 +154,7 @@ def reg_marriage(cursor):
 
     # Register the marriage
     cursor.execute("INSERT INTO marriages VALUES (?,?,?,?,?,?,?)",
-                   (new_regno, today, marriage_input[1], person1[0], person1[1], person2[0], person2[1],))
+                   (new_regno, today, agent_city, person1[0], person1[1], person2[0], person2[1],))
 
     print("Congratulations!!! " + person1[0] + " and " + person2[0] + " are now a happily married couple.")
 
@@ -316,11 +316,16 @@ def driver_abstract(cursor):
 
     #ordering if ordering requested
     if ordered == 'y':
-        cursor.execute("SELECT tickets.tno, tickets.vdate, tickets.violation, tickets.fine,tickets.regno, vehicles.make, vehicles.model FROM vehicles,tickets,registrations WHERE registrations.fname = ? AND registrations.lname = ? AND registrations.regno = tickets.regno AND vehicles.vin = registrations.vin ORDER BY date(tickets.vdate) DESC;", (f_name,l_name))
+        cursor.execute("SELECT tickets.tno, tickets.vdate, tickets.violation, tickets.fine, tickets.regno, vehicles.make, vehicles.model "
+                       "FROM vehicles,tickets,registrations "
+                       "WHERE registrations.fname = ? AND registrations.lname = ? AND registrations.regno = tickets.regno AND vehicles.vin = registrations.vin "
+                       "ORDER BY date(tickets.vdate) DESC;", (f_name, l_name))
         abstract_info = cursor.fetchall()
 
     else:
-        cursor.execute("SELECT tickets.tno, tickets.vdate, tickets.violation, tickets.fine,tickets.regno, vehicles.make, vehicles.model FROM vehicles,tickets,registrations WHERE registrations.fname = ? AND registrations.lname = ? AND registrations.regno = tickets.regno AND vehicles.vin = registrations.vin;",(f_name, l_name))
+        cursor.execute("SELECT tickets.tno, tickets.vdate, tickets.violation, tickets.fine,tickets.regno, vehicles.make, vehicles.model "
+                       "FROM vehicles,tickets,registrations "
+                       "WHERE registrations.fname = ? AND registrations.lname = ? AND registrations.regno = tickets.regno AND vehicles.vin = registrations.vin;",(f_name, l_name))
         abstract_info = cursor.fetchall()
 
     num_tickets = len(abstract_info)
@@ -520,7 +525,7 @@ def find_car_owner(cursor):
 ******************************************************************************************************'''
 
 
-def agent_menu(cursor, connection):
+def agent_menu(cursor, connection, agent_city):
     while True:
         connection.commit()
         user_entry = input("\nSelect from one of the following options:\n"
@@ -533,9 +538,9 @@ def agent_menu(cursor, connection):
                            "0. EXIT\n")
 
         if user_entry == "1":
-            reg_birth(cursor)
+            reg_birth(cursor, agent_city)
         elif user_entry == "2":
-            reg_marriage(cursor)
+            reg_marriage(cursor, agent_city)
         elif user_entry == "3":
             renew_registration(cursor)
         elif user_entry == "4":
@@ -591,10 +596,10 @@ def main():
 
     login_attempt = login.login(cursor)
     if login_attempt != False:
-        if login_attempt == "o":
+        if login_attempt[0] == "o":
             officer_menu(cursor, conn)
-        elif login_attempt == "a":
-            agent_menu(cursor, conn)
+        elif login_attempt[0] == "a":
+            agent_menu(cursor, conn, login_attempt[1])
 
     conn.commit()
 

@@ -20,7 +20,7 @@ def get_login_details():
 #If the user does not exist: return False.
 def does_user_exist(username, password, c):
     #Find the username password combination in the table.
-    c.execute("SELECT uid, pwd, utype FROM users WHERE uid = ? AND pwd = ?", (username, password))
+    c.execute("SELECT uid, pwd, utype, city FROM users WHERE uid = ? AND pwd = ?", (username, password))
     user_in_table = c.fetchone()
     
     #If the username and password were entered correctly we return that user. 
@@ -86,4 +86,4 @@ def login(c):
     #If the credentials were entered in correctly, return the type of the user.
     #Return 'a' for agent or 'o' for officer.
     else:
-        return existing_user[2]
+        return [existing_user[2], existing_user[3]]
