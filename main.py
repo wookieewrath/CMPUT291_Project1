@@ -582,26 +582,32 @@ def main():
     #query = open('prj-tables.sql', 'r').read()
     #tables = open('a2-data.sql', 'r').read()
 
-    conn = sqlite3.connect('./testProject.db')
-    cursor = conn.cursor()
+   database_name = input("Please specify the database you would like to connect to: ")
 
-    cursor.executescript('PRAGMA foreign_keys=ON;')
-    # c.executescript(query)
-    # c.executescript(tables)
+    if(os.path.isfile(database_name)):
 
-    print("★ ★ WELCOME TO THE REGISTRY DATABASE! ★ ★")
-    print("LOG IN:")
-    login_attempt = login.login(cursor)
-    while login_attempt == False:
+        conn = sqlite3.connect(database_name)
+        cursor = conn.cursor()
+
+        cursor.executescript('PRAGMA foreign_keys=ON;')
+        # c.executescript(query)
+        # c.executescript(tables)
+
+        print("★ ★ WELCOME TO THE REGISTRY DATABASE! ★ ★")
+        print("LOG IN:")
         login_attempt = login.login(cursor)
-        
-    if login_attempt != False:
-        if login_attempt[0] == "o":
-            officer_menu(cursor, conn)
-        elif login_attempt[0] == "a":
-            agent_menu(cursor, conn, login_attempt[1])
+        while login_attempt == False:
+            login_attempt = login.login(cursor)
 
-    conn.commit()
+        if login_attempt != False:
+            if login_attempt[0] == "o":
+                officer_menu(cursor, conn)
+            elif login_attempt[0] == "a":
+                agent_menu(cursor, conn, login_attempt[1])
+
+        conn.commit()
+    else:
+        print("Invalid Database. Exiting.")
 
 
 if __name__ == "__main__":
