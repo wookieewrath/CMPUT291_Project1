@@ -606,7 +606,7 @@ def main():
                 agent_menu(cursor, conn, login_attempt[1])
 
         conn.commit()
-    else:
+   else:
         print("Invalid Database. Exiting.")
 
 
