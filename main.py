@@ -370,7 +370,7 @@ def driver_abstract(cursor):
 
 
         if num_tickets > 5:
-            more_tickets = input("%s %s has more tickets, would you like to see more? (y/n)"%(f_name,l_name)).lower()
+            more_tickets = input("%s %s has more tickets, would you like to see more? (y/n): "%(f_name,l_name)).lower()
             loops = math.ceil(num_tickets/5)
             j = 0
             while i < num_tickets:
@@ -387,7 +387,7 @@ def driver_abstract(cursor):
                         i+=1
                         k+=1
 
-                        print("Ticket number: %s Violation Date: %s Violation Description: %s Fine: %s Registration Number: %s Make: %s Model: %s" % (ticket_number, vio_date, vio_descript, fine, reg_num, make, model))
+                        print("Ticket number: %s Violation Date: %s Violation Description: %s Fine: %s Registration Number: %s Make: %s Model: %s\n" % (ticket_number, vio_date, vio_descript, fine, reg_num, make, model))
 
                 elif more_tickets != 'y':
                     break
