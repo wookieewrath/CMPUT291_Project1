@@ -584,7 +584,7 @@ def main():
 
    database_name = input("Please specify the database you would like to connect to: ")
 
-    if(os.path.isfile(database_name)):
+   if(os.path.isfile(database_name)):
 
         conn = sqlite3.connect(database_name)
         cursor = conn.cursor()
